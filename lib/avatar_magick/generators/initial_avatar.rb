@@ -17,15 +17,18 @@ module AvatarMagick
         color       = opts[:color] ? "##{opts[:color]}" : content.env[:avatar_magick][:color]
         size        = opts[:size] || content.env[:avatar_magick][:size]
         font        = opts[:font] || content.env[:avatar_magick][:font]
+        maximum     = (opts[:maximum] || content.env[:avatar_magick][:maximum]).to_i
 
+        maximum = 1 if maximum.negative?
         # extract the first letter of the first 3 words and capitalize
-        text = (string.split(/\s/)- ["", nil]).map { |t| t[0].upcase }.slice(0, 3).join('')
+        text = (string.split(/\s/)- ["", nil]).map { |t| t.to_s[0].upcase }.slice(0, maximum).join('')
 
         w, h = size.split('x').map { |d| d.to_i }
         h ||= w
 
-        font_size = ( w / [text.length, 2].max ).to_i
+        font_size = ( w / [text.length, maximum].max ).to_i
 
+        gradient = background.include?('-')
         # Settings
         args.push("-gravity none")
         args.push("-antialias")
@@ -33,8 +36,15 @@ module AvatarMagick
         args.push("-font \"#{font}\"")
         args.push("-family '#{opts[:font_family]}'") if opts[:font_family]
         args.push("-fill #{color}")
-        args.push("-background #{background}")
-        args.push("label:#{text}")
+        args.push("-background #{gradient ? 'none' : background}")
+        args.push("caption:#{text}")
+        if gradient
+          background = background.gsub('#', '').split('-').map{|c| '#'.concat(c) }.join('-')
+          args.push("-gravity center -append")
+          args.push("-size #{w}x#{h}")
+          args.push("gradient:#{background}")
+          args.push("+swap -gravity center -compose over -composite")
+        end
 
         content.generate!(:convert, args.join(' '), format)
 
