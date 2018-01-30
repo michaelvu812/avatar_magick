@@ -37,11 +37,11 @@ module AvatarMagick
         args.push("-family '#{opts[:font_family]}'") if opts[:font_family]
         args.push("-fill #{color}")
         args.push("-background #{gradient ? 'none' : background}")
-        args.push("caption:#{text}")
+        args.push("label:#{text}")
+        args.push("-trim")
         if gradient
           background = background.gsub('#', '').split('-').map{|c| '#'.concat(c) }.join('-')
           args.push("-gravity center -append")
-          args.push("-size #{w}x#{h}")
           args.push("gradient:#{background}")
           args.push("+swap -gravity center -compose over -composite")
         end
