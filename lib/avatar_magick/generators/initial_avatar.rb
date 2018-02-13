@@ -42,6 +42,7 @@ module AvatarMagick
         if gradient
           background = background.gsub('#', '').split('-').map{|c| '#'.concat(c) }.join('-')
           args.push("-gravity center -append")
+          args.push("-size #{w}x#{h}")
           args.push("gradient:#{background}")
           args.push("+swap -gravity center -compose over -composite")
         end
